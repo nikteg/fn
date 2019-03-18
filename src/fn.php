@@ -111,7 +111,7 @@ function dd($value, callable $dump = null, callable $die = null) {
 
 // SLICING
 
-function takeWhile(callable $predicate, iterable $iter): iterable {
+function takeWhile(callable $predicate, iterable $iter) {
     foreach ($iter as $k => $v) {
         if ($predicate($v)) {
             yield $k => $v;
@@ -121,7 +121,7 @@ function takeWhile(callable $predicate, iterable $iter): iterable {
     }
 }
 
-function dropWhile(callable $predicate, iterable $iter): iterable {
+function dropWhile(callable $predicate, iterable $iter) {
     $stillDropping = true;
     foreach ($iter as $k => $v) {
         if ($stillDropping && $predicate($v)) {
@@ -134,15 +134,15 @@ function dropWhile(callable $predicate, iterable $iter): iterable {
     }
 }
 
-function take(int $num, iterable $iter): iterable {
+function take(int $num, iterable $iter) {
     return \Krak\Fn\slice(0, $iter, $num);
 }
 
-function drop(int $num, iterable $iter): iterable {
+function drop(int $num, iterable $iter) {
     return \Krak\Fn\slice($num, $iter);
 }
 
-function slice(int $start, iterable $iter, $length = INF): iterable {
+function slice(int $start, iterable $iter, $length = INF) {
     assert($start >= 0);
 
     $i = 0;
@@ -165,7 +165,7 @@ function head(iterable $iter) {
     }
 }
 
-function chunk(int $size, iterable $iter): iterable {
+function chunk(int $size, iterable $iter) {
     assert($size > 0);
 
     $chunk = [];
@@ -182,7 +182,7 @@ function chunk(int $size, iterable $iter): iterable {
     }
 }
 
-function chunkBy(callable $fn, iterable $iter, ?int $maxSize = null): iterable {
+function chunkBy(callable $fn, iterable $iter, int $maxSize = null) {
     assert($maxSize === null || $maxSize > 0);
     $group = [];
     $groupKey = null;
@@ -204,7 +204,7 @@ function chunkBy(callable $fn, iterable $iter, ?int $maxSize = null): iterable {
     }
 }
 
-function groupBy(callable $fn, iterable $iter, ?int $maxSize = null): iterable {
+function groupBy(callable $fn, iterable $iter, int $maxSize = null) {
     return \Krak\Fn\chunkBy($fn, $iter, $maxSize);
 }
 
@@ -328,7 +328,7 @@ function zip(iterable ...$iters): \Iterator {
 }
 
 
-function flatMap(callable $map, iterable $iter): iterable {
+function flatMap(callable $map, iterable $iter) {
     foreach ($iter as $k => $v) {
         foreach ($map($v) as $k => $v) {
             yield $k => $v;
@@ -336,7 +336,7 @@ function flatMap(callable $map, iterable $iter): iterable {
     }
 }
 
-function flatten(iterable $iter, $levels = INF): iterable {
+function flatten(iterable $iter, $levels = INF) {
     if ($levels == 0) {
         return $iter;
     } else if ($levels == 1) {
@@ -367,12 +367,12 @@ function when(callable $if, callable $then, $value) {
     return $if($value) ? $then($value) : $value;
 }
 
-function toPairs(iterable $iter): iterable {
+function toPairs(iterable $iter) {
     foreach ($iter as $key => $val) {
         yield [$key, $val];
     }
 }
-function fromPairs(iterable $iter): iterable {
+function fromPairs(iterable $iter) {
     foreach ($iter as list($key, $val)) {
         yield $key => $val;
     }
@@ -385,7 +385,7 @@ function without(array $fields, iterable $iter): \Iterator {
     return \Krak\Fn\filterKeys(\Krak\Fn\Curried\not(\Krak\Fn\Curried\inArray($fields)), $iter);
 }
 
-function compact(iterable $iter): iterable {
+function compact(iterable $iter) {
     foreach ($iter as $key => $val) {
         if ($val !== null) {
             yield $key => $val;
@@ -403,7 +403,7 @@ function arrayCompact(iterable $iter): array {
     return $vals;
 }
 
-function pad(int $size, iterable $iter, $padValue = null): iterable {
+function pad(int $size, iterable $iter, $padValue = null) {
     $i = 0;
     foreach ($iter as $key => $value) {
         yield $value;
@@ -494,26 +494,26 @@ function partition(callable $partition, iterable $iter, int $numParts = 2): arra
     return $parts;
 }
 
-function map(callable $predicate, iterable $iter): iterable {
+function map(callable $predicate, iterable $iter) {
     foreach ($iter as $key => $value) {
         yield $key => $predicate($value);
     }
 }
 
-function mapKeys(callable $predicate, iterable $iter): iterable {
+function mapKeys(callable $predicate, iterable $iter) {
     foreach ($iter as $key => $value) {
         yield $predicate($key) => $value;
     }
 }
 
-function mapKeyValue(callable $fn , iterable $iter): iterable {
+function mapKeyValue(callable $fn , iterable $iter) {
     foreach ($iter as $key => $value) {
-        [$key, $value] = $fn([$key, $value]);
-        yield $key => $value;
+        $res = $fn([$key, $value]);
+        yield $res[0] => $res[1];
     }
 }
 
-function mapOn(array $maps, iterable $iter): iterable {
+function mapOn(array $maps, iterable $iter) {
     foreach ($iter as $key => $value) {
         if (isset($maps[$key])) {
             yield $key => $maps[$key]($value);
@@ -526,18 +526,19 @@ function mapOn(array $maps, iterable $iter): iterable {
 function mapAccum(callable $fn, iterable $iter, $acc = null) {
     $data = [];
     foreach ($iter as $key => $value) {
-        [$acc, $value] = $fn($acc, $value);
-        $data[] = $value;
+        $res = $fn($acc, $value);
+        $data[] = $res[1];
     }
 
-    return [$acc, $data];
+    return [$res[0], $data];
 }
 
 function withState(callable $fn, $initialState = null) {
     $state = $initialState;
     return function(...$args) use ($fn, &$state) {
-        [$state, $res] = $fn($state, ...$args);
-        return $res;
+        $res = $fn($state, ...$args);
+        $state = $res[0];
+        return $res[1];
     };
 }
 
@@ -549,7 +550,7 @@ function arrayReindex(callable $fn, iterable $iter): array {
     return $res;
 }
 
-function reindex(callable $fn, iterable $iter): iterable {
+function reindex(callable $fn, iterable $iter) {
     foreach ($iter as $key => $value) {
         yield $fn($value) => $value;
     }
@@ -569,14 +570,14 @@ function reduceKeyValue(callable $reduce, iterable $iter, $acc = null) {
     return $acc;
 }
 
-function filter(callable $predicate, iterable $iter): iterable {
+function filter(callable $predicate, iterable $iter) {
     foreach ($iter as $key => $value) {
         if ($predicate($value)) {
             yield $key => $value;
         }
     }
 }
-function filterKeys(callable $predicate, iterable $iter): iterable {
+function filterKeys(callable $predicate, iterable $iter) {
     foreach ($iter as $key => $value) {
         if ($predicate($key)) {
             yield $key => $value;
@@ -584,19 +585,19 @@ function filterKeys(callable $predicate, iterable $iter): iterable {
     }
 }
 
-function values(iterable $iter): iterable {
+function values(iterable $iter) {
     foreach ($iter as $v) {
         yield $v;
     }
 }
 
-function keys(iterable $iter): iterable {
+function keys(iterable $iter) {
     foreach ($iter as $k => $v) {
         yield $k;
     }
 }
 
-function flip(iterable $iter): iterable {
+function flip(iterable $iter) {
     foreach ($iter as $k => $v) {
         yield $v => $k;
     }
