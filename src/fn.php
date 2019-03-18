@@ -7,30 +7,30 @@ namespace Krak\Fn;
 function method($name, /* object */ $data, ...$optionalArgs) {
     return $data->{$name}(...$optionalArgs);
 }
-function prop(string $key, /* object */ $data, $else = null) {
+function prop($key, /* object */ $data, $else = null) {
     return \property_exists($data, $key) ? $data->{$key} : $else;
 }
-function index(/* string|int */ $key, array $data, $else = null) {
+function index(/* string|*/ $key, $data, $else = null) {
     return \array_key_exists($key, $data) ? $data[$key] : $else;
 }
 
-function setProp(string $key, $value, /* object */ $data) {
+function setProp($key, $value, /* object */ $data) {
     $data->{$key} = $value;
     return $data;
 }
 
-function setIndex(/* string|int */ $key, $value, array $data) {
+function setIndex(/* string|*/ $key, $value, $data) {
     $data[$key] = $value;
     return $data;
 }
 
-function setIndexIn(array $keys, $value, array $data) {
+function setIndexIn($keys, $value, $data) {
     return \Krak\Fn\updateIndexIn($keys, function() use ($value) {
         return $value;
     }, $data);
 }
 
-function propIn(array $props, /* object */ $obj, $else = null) {
+function propIn($props, /* object */ $obj, $else = null) {
     foreach ($props as $prop) {
         if (!\is_object($obj) || !\property_exists($obj, $prop)) {
             return $else;
@@ -42,7 +42,7 @@ function propIn(array $props, /* object */ $obj, $else = null) {
     return $obj;
 }
 
-function indexIn(array $keys, array $data, $else = null) {
+function indexIn($keys, $data, $else = null) {
     foreach ($keys as $part) {
         if (!\is_array($data) || !\array_key_exists($part, $data)) {
             return $else;
@@ -54,7 +54,7 @@ function indexIn(array $keys, array $data, $else = null) {
     return $data;
 }
 
-function hasIndexIn(array $keys, array $data): bool {
+function hasIndexIn($keys, $data) {
     foreach ($keys as $key) {
         if (!\is_array($data) || !\array_key_exists($key, $data)) {
             return false;
@@ -65,7 +65,7 @@ function hasIndexIn(array $keys, array $data): bool {
     return true;
 }
 
-function updateIndexIn(array $keys, callable $update, array $data): array {
+function updateIndexIn($keys, $update, $data) {
     $curData = &$data;
     foreach (\array_slice($keys, 0, -1) as $key) {
         if (!\array_key_exists($key, $curData)) {
@@ -82,14 +82,14 @@ function updateIndexIn(array $keys, callable $update, array $data): array {
 
 // UTILITY
 
-function assign($obj, iterable $iter) {
+function assign($obj, $iter) {
     foreach ($iter as $key => $value) {
         $obj->{$key} = $value;
     }
     return $obj;
 }
 
-function join(string $sep, iterable $iter) {
+function join($sep, $iter) {
     return \Krak\Fn\reduce(function($acc, $v) use ($sep) {
         return $acc ? $acc . $sep . $v : $v;
     }, $iter, "");
@@ -99,11 +99,11 @@ function construct($className, ...$args) {
     return new $className(...$args);
 }
 
-function spread(callable $fn, array $data) {
+function spread($fn, $data) {
     return $fn(...$data);
 }
 
-function dd($value, callable $dump = null, callable $die = null) {
+function dd($value, $dump = null, $die = null) {
     $dump = $dump ?: (function_exists('dump') ? 'dump' : 'var_dump');
     $dump($value);
     ($die ?? function() { die; })();
@@ -111,7 +111,7 @@ function dd($value, callable $dump = null, callable $die = null) {
 
 // SLICING
 
-function takeWhile(callable $predicate, iterable $iter) {
+function takeWhile($predicate, $iter) {
     foreach ($iter as $k => $v) {
         if ($predicate($v)) {
             yield $k => $v;
@@ -121,7 +121,7 @@ function takeWhile(callable $predicate, iterable $iter) {
     }
 }
 
-function dropWhile(callable $predicate, iterable $iter) {
+function dropWhile($predicate, $iter) {
     $stillDropping = true;
     foreach ($iter as $k => $v) {
         if ($stillDropping && $predicate($v)) {
@@ -134,15 +134,15 @@ function dropWhile(callable $predicate, iterable $iter) {
     }
 }
 
-function take(int $num, iterable $iter) {
+function take($num, $iter) {
     return \Krak\Fn\slice(0, $iter, $num);
 }
 
-function drop(int $num, iterable $iter) {
+function drop($num, $iter) {
     return \Krak\Fn\slice($num, $iter);
 }
 
-function slice(int $start, iterable $iter, $length = INF) {
+function slice($start, $iter, $length = INF) {
     assert($start >= 0);
 
     $i = 0;
@@ -159,13 +159,13 @@ function slice(int $start, iterable $iter, $length = INF) {
     }
 }
 
-function head(iterable $iter) {
+function head($iter) {
     foreach ($iter as $v) {
         return $v;
     }
 }
 
-function chunk(int $size, iterable $iter) {
+function chunk($size, $iter) {
     assert($size > 0);
 
     $chunk = [];
@@ -182,7 +182,7 @@ function chunk(int $size, iterable $iter) {
     }
 }
 
-function chunkBy(callable $fn, iterable $iter, int $maxSize = null) {
+function chunkBy($fn, $iter, $maxSize = null) {
     assert($maxSize === null || $maxSize > 0);
     $group = [];
     $groupKey = null;
@@ -204,7 +204,7 @@ function chunkBy(callable $fn, iterable $iter, int $maxSize = null) {
     }
 }
 
-function groupBy(callable $fn, iterable $iter, int $maxSize = null) {
+function groupBy($fn, $iter, $maxSize = null) {
     return \Krak\Fn\chunkBy($fn, $iter, $maxSize);
 }
 
@@ -235,7 +235,7 @@ function range($start, $end, $step = null) {
 
 // OPERATORS
 
-function op(string $op, $b, $a) {
+function op($op, $b, $a) {
     switch ($op) {
     case '==':
     case 'eq':
@@ -278,7 +278,7 @@ function op(string $op, $b, $a) {
     }
 }
 
-function andf(callable ...$fns) {
+function andf(...$fns) {
     return function($el) use ($fns) {
         foreach ($fns as $fn) {
             if (!$fn($el)) {
@@ -288,7 +288,7 @@ function andf(callable ...$fns) {
         return true;
     };
 }
-function orf(callable ...$fns) {
+function orf(...$fns) {
     return function($el) use ($fns) {
         foreach ($fns as $fn) {
             if ($fn($el)) {
@@ -299,7 +299,7 @@ function orf(callable ...$fns) {
     };
 }
 
-function chain(iterable ...$iters) {
+function chain(...$iters) {
     foreach ($iters as $iter) {
         foreach ($iter as $k => $v) {
             yield $k => $v;
@@ -307,7 +307,7 @@ function chain(iterable ...$iters) {
     }
 }
 
-function zip(iterable ...$iters): \Iterator {
+function zip(...$iters) {
     if (count($iters) == 0) {
         return;
     }
@@ -328,7 +328,7 @@ function zip(iterable ...$iters): \Iterator {
 }
 
 
-function flatMap(callable $map, iterable $iter) {
+function flatMap($map, $iter) {
     foreach ($iter as $k => $v) {
         foreach ($map($v) as $k => $v) {
             yield $k => $v;
@@ -336,7 +336,7 @@ function flatMap(callable $map, iterable $iter) {
     }
 }
 
-function flatten(iterable $iter, $levels = INF) {
+function flatten($iter, $levels = INF) {
     if ($levels == 0) {
         return $iter;
     } else if ($levels == 1) {
@@ -363,29 +363,29 @@ function flatten(iterable $iter, $levels = INF) {
 }
 
 
-function when(callable $if, callable $then, $value) {
+function when($if, $then, $value) {
     return $if($value) ? $then($value) : $value;
 }
 
-function toPairs(iterable $iter) {
+function toPairs($iter) {
     foreach ($iter as $key => $val) {
         yield [$key, $val];
     }
 }
-function fromPairs(iterable $iter) {
+function fromPairs($iter) {
     foreach ($iter as list($key, $val)) {
         yield $key => $val;
     }
 }
 
-function within(array $fields, iterable $iter): \Iterator {
+function within($fields, $iter) {
     return \Krak\Fn\filterKeys(\Krak\Fn\Curried\inArray($fields), $iter);
 }
-function without(array $fields, iterable $iter): \Iterator {
+function without($fields, $iter) {
     return \Krak\Fn\filterKeys(\Krak\Fn\Curried\not(\Krak\Fn\Curried\inArray($fields)), $iter);
 }
 
-function compact(iterable $iter) {
+function compact($iter) {
     foreach ($iter as $key => $val) {
         if ($val !== null) {
             yield $key => $val;
@@ -393,7 +393,7 @@ function compact(iterable $iter) {
     }
 }
 
-function arrayCompact(iterable $iter): array {
+function arrayCompact($iter) {
     $vals = [];
     foreach ($iter as $key => $val) {
         if ($val !== null) {
@@ -403,7 +403,7 @@ function arrayCompact(iterable $iter): array {
     return $vals;
 }
 
-function pad(int $size, iterable $iter, $padValue = null) {
+function pad($size, $iter, $padValue = null) {
     $i = 0;
     foreach ($iter as $key => $value) {
         yield $value;
@@ -422,19 +422,19 @@ function pad(int $size, iterable $iter, $padValue = null) {
 
 // ALIASES
 
-function inArray(array $set, $item): bool {
+function inArray($set, $item) {
     return \in_array($item, $set);
 }
 
-function arrayMap(callable $fn, iterable $data): array {
+function arrayMap($fn, $data) {
     return \array_map($fn, \is_array($data) ? $data : \Krak\Fn\toArray($data));
 }
 
-function arrayFilter(callable $fn, iterable $data): array {
+function arrayFilter($fn, $data) {
     return \array_filter(\is_array($data) ? $data : \Krak\Fn\toArray($data), $fn);
 }
 
-function all(callable $predicate, iterable $iter): bool {
+function all($predicate, $iter) {
     foreach ($iter as $key => $value) {
         if (!$predicate($value)) {
             return false;
@@ -443,7 +443,7 @@ function all(callable $predicate, iterable $iter): bool {
 
     return true;
 }
-function any(callable $predicate, iterable $iter): bool {
+function any($predicate, $iter) {
     foreach ($iter as $key => $value) {
         if ($predicate($value)) {
             return true;
@@ -452,14 +452,14 @@ function any(callable $predicate, iterable $iter): bool {
 
     return false;
 }
-function search(callable $predicate, iterable $iter) {
+function search($predicate, $iter) {
     foreach ($iter as $value) {
         if ($predicate($value)) {
             return $value;
         }
     }
 }
-function indexOf(callable $predicate, iterable $iter) {
+function indexOf($predicate, $iter) {
     foreach ($iter as $key => $value) {
         if ($predicate($value)) {
             return $key;
@@ -467,10 +467,10 @@ function indexOf(callable $predicate, iterable $iter) {
     }
 }
 
-function trans(callable $trans, callable $fn, $data) {
+function trans($trans, $fn, $data) {
     return $fn($trans($data));
 }
-function not(callable $fn, ...$args): bool {
+function not($fn, ...$args) {
     return !$fn(...$args);
 }
 function isInstance($class, $item) {
@@ -480,11 +480,11 @@ function isInstance($class, $item) {
 function isNull($val) {
     return \is_null($val);
 }
-function nullable(callable $fn, $value) {
+function nullable($fn, $value) {
     return $value === null ? $value : $fn($value);
 }
 
-function partition(callable $partition, iterable $iter, int $numParts = 2): array {
+function partition($partition, $iter, $numParts = 2) {
     $parts = \array_fill(0, $numParts, []);
     foreach ($iter as $val) {
         $index = (int) $partition($val);
@@ -494,26 +494,26 @@ function partition(callable $partition, iterable $iter, int $numParts = 2): arra
     return $parts;
 }
 
-function map(callable $predicate, iterable $iter) {
+function map($predicate, $iter) {
     foreach ($iter as $key => $value) {
         yield $key => $predicate($value);
     }
 }
 
-function mapKeys(callable $predicate, iterable $iter) {
+function mapKeys($predicate, $iter) {
     foreach ($iter as $key => $value) {
         yield $predicate($key) => $value;
     }
 }
 
-function mapKeyValue(callable $fn , iterable $iter) {
+function mapKeyValue($fn , $iter) {
     foreach ($iter as $key => $value) {
         $res = $fn([$key, $value]);
         yield $res[0] => $res[1];
     }
 }
 
-function mapOn(array $maps, iterable $iter) {
+function mapOn($maps, $iter) {
     foreach ($iter as $key => $value) {
         if (isset($maps[$key])) {
             yield $key => $maps[$key]($value);
@@ -523,7 +523,7 @@ function mapOn(array $maps, iterable $iter) {
     }
 }
 
-function mapAccum(callable $fn, iterable $iter, $acc = null) {
+function mapAccum($fn, $iter, $acc = null) {
     $data = [];
     foreach ($iter as $key => $value) {
         $res = $fn($acc, $value);
@@ -533,7 +533,7 @@ function mapAccum(callable $fn, iterable $iter, $acc = null) {
     return [$res[0], $data];
 }
 
-function withState(callable $fn, $initialState = null) {
+function withState($fn, $initialState = null) {
     $state = $initialState;
     return function(...$args) use ($fn, &$state) {
         $res = $fn($state, ...$args);
@@ -542,7 +542,7 @@ function withState(callable $fn, $initialState = null) {
     };
 }
 
-function arrayReindex(callable $fn, iterable $iter): array {
+function arrayReindex($fn, $iter) {
     $res = [];
     foreach ($iter as $key => $value) {
         $res[$fn($value)] = $value;
@@ -550,34 +550,34 @@ function arrayReindex(callable $fn, iterable $iter): array {
     return $res;
 }
 
-function reindex(callable $fn, iterable $iter) {
+function reindex($fn, $iter) {
     foreach ($iter as $key => $value) {
         yield $fn($value) => $value;
     }
 }
 
-function reduce(callable $reduce, iterable $iter, $acc = null) {
+function reduce($reduce, $iter, $acc = null) {
     foreach ($iter as $key => $value) {
         $acc = $reduce($acc, $value);
     }
     return $acc;
 }
 
-function reduceKeyValue(callable $reduce, iterable $iter, $acc = null) {
+function reduceKeyValue($reduce, $iter, $acc = null) {
     foreach ($iter as $key => $value) {
         $acc = $reduce($acc, [$key, $value]);
     }
     return $acc;
 }
 
-function filter(callable $predicate, iterable $iter) {
+function filter($predicate, $iter) {
     foreach ($iter as $key => $value) {
         if ($predicate($value)) {
             yield $key => $value;
         }
     }
 }
-function filterKeys(callable $predicate, iterable $iter) {
+function filterKeys($predicate, $iter) {
     foreach ($iter as $key => $value) {
         if ($predicate($key)) {
             yield $key => $value;
@@ -585,25 +585,25 @@ function filterKeys(callable $predicate, iterable $iter) {
     }
 }
 
-function values(iterable $iter) {
+function values($iter) {
     foreach ($iter as $v) {
         yield $v;
     }
 }
 
-function keys(iterable $iter) {
+function keys($iter) {
     foreach ($iter as $k => $v) {
         yield $k;
     }
 }
 
-function flip(iterable $iter) {
+function flip($iter) {
     foreach ($iter as $k => $v) {
         yield $v => $k;
     }
 }
 
-function curry(callable $fn, int $num = 1) {
+function curry($fn, $num = 1) {
     if ($num == 0) {
         return $fn;
     }
@@ -625,7 +625,7 @@ function _() {
     return placeholder();
 }
 
-function partial(callable $fn, ...$appliedArgs) {
+function partial($fn, ...$appliedArgs) {
     return function(...$args) use ($fn, $appliedArgs) {
         list($appliedArgs, $args) = \array_reduce($appliedArgs, function($acc, $arg) {
             list($appliedArgs, $args) = $acc;
@@ -641,7 +641,7 @@ function partial(callable $fn, ...$appliedArgs) {
     };
 }
 
-function autoCurry(array $args, $numArgs, callable $fn) {
+function autoCurry($args, $numArgs, $fn) {
     if (\count($args) >= $numArgs) {
         return $fn(...$args);
     }
@@ -658,7 +658,7 @@ function autoCurry(array $args, $numArgs, callable $fn) {
     );
 }
 
-function toArray(iterable $iter): array {
+function toArray($iter) {
     $data = [];
     foreach ($iter as $key => $val) {
         $data[] = $val;
@@ -666,7 +666,7 @@ function toArray(iterable $iter): array {
     return $data;
 }
 
-function toArrayWithKeys(iterable $iter): array {
+function toArrayWithKeys($iter) {
     $data = [];
     foreach ($iter as $key => $val) {
         $data[$key] = $val;
@@ -681,13 +681,13 @@ function id($v) {
 
 // UTILITY
 
-function differenceWith(callable $cmp, iterable $a, iterable $b) {
+function differenceWith($cmp, $a, $b) {
     return \Krak\Fn\filter(function($aItem) use ($cmp, $b) {
         return \Krak\Fn\indexOf(\Krak\Fn\partial($cmp, $aItem), $b) === null;
     }, $a);
 }
 
-function sortFromArray(callable $fn, array $orderedElements, iterable $iter): array {
+function sortFromArray($fn, $orderedElements, $iter) {
     $data = [];
     $flippedElements = \array_flip($orderedElements);
 
@@ -704,7 +704,7 @@ function sortFromArray(callable $fn, array $orderedElements, iterable $iter): ar
     return $data;
 }
 
-function retry(callable $fn, $shouldRetry = null) {
+function retry($fn, $shouldRetry = null) {
     if (\is_null($shouldRetry)) {
         $shouldRetry = function($numRetries, \Throwable $t = null) { return true; };
     }
@@ -716,7 +716,7 @@ function retry(callable $fn, $shouldRetry = null) {
         $shouldRetry = function($numRetries, \Throwable $t = null) use ($maxTries) { return $numRetries <= $maxTries; };
     }
     if (!\is_callable($shouldRetry)) {
-        throw new \InvalidArgumentException('shouldRetry must be an int or callable');
+        throw new \InvalidArgumentException('shouldRetry must be an or callable');
     }
 
     $numRetries = 0;
@@ -730,7 +730,7 @@ function retry(callable $fn, $shouldRetry = null) {
     throw $t;
 }
 
-function pipe(callable ...$fns) {
+function pipe(...$fns) {
     return function(...$args) use ($fns) {
         $isFirstPass = true;
         foreach ($fns as $fn) {
@@ -746,11 +746,11 @@ function pipe(callable ...$fns) {
     };
 }
 
-function compose(callable ...$fns) {
+function compose(...$fns) {
     return \Krak\Fn\pipe(...\array_reverse($fns));
 }
 
-function stack(array $funcs, callable $last = null, callable $resolve = null) {
+function stack($funcs, $last = null, $resolve = null) {
     return function(...$args) use ($funcs, $resolve, $last) {
         return \Krak\Fn\reduce(function($acc, $func) use ($resolve) {
             return function(...$args) use ($acc, $func, $resolve) {
@@ -762,19 +762,19 @@ function stack(array $funcs, callable $last = null, callable $resolve = null) {
     };
 }
 
-function each(callable $handle, iterable $iter) {
+function each($handle, $iter) {
     foreach ($iter as $v) {
         $handle($v);
     }
 }
 /** @deprecated */
-function onEach(callable $handle, iterable $iter) {
+function onEach($handle, $iter) {
     foreach ($iter as $v) {
         $handle($v);
     }
 }
 
-function iter($iter): \Iterator {
+function iter($iter) {
     if (\is_array($iter)) {
         return new \ArrayIterator($iter);
     } else if ($iter instanceof \Iterator) {
